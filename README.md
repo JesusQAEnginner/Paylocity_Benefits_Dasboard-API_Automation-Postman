@@ -176,6 +176,8 @@ newman run Benefits_Automation.postman_collection.json \
 --reporter-htmlextra-export report.html
 
 Open report.html to view execution summary.
+URL for open the report.html on Browser:
+https://jesusqaenginner.github.io/Paylocity_Benefits_Dasboard-API_Automation-Postman/reports/report.html
 
 📊 Sample Report Includes
 
@@ -221,7 +223,7 @@ Automation discipline (no flaky tests)
 
 👤 Author
 
-Jesus Ricardo Hernandez Campos
+Jesus Ricardo Hernandez Campos |
 API Testing | Automation Strategy | CI/CD Ready Frameworks
 
 🏆 Why This Matters
