@@ -1,0 +1,899 @@
+{
+  "info": {
+    "_postman_id": "2e8514c7-c77c-4104-9e74-88cb8c76d403",
+    "name": "Paylocity_Benefits_Dasboard-API_Testing-Postman_Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52514981",
+    "_collection_link": "https://go.postman.co/collection/52514981-2e8514c7-c77c-4104-9e74-88cb8c76d403?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "CREATE EMPLOYEE 0 Dependent",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "// Get body sent\r",
+              "let requestBody = JSON.parse(pm.request.body.raw);\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"Status 200 o 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE ID AND SAVE IT\r",
+              "// ========================================\r",
+              "pm.test(\"Employee has valid ID\", function () {\r",
+              "    pm.expect(jsonData.id).to.exist;\r",
+              "    pm.expect(jsonData.id).to.be.a(\"string\");\r",
+              "    pm.expect(jsonData.id).to.match(\r",
+              "        /^[0-9a-fA-F-]{36}$/\r",
+              "    ); // Basic UUID validation\r",
+              "});\r",
+              "\r",
+              "// Save ID for future requests (GET, PUT, DELETE)\r",
+              "pm.collectionVariables.set(\"employeeId\", jsonData.id);\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE OWNERSHIP\r",
+              "// ========================================\r",
+              "// It must match the authenticated user\r",
+              "pm.test(\"Employee belongs to the authenticated user\", function () {\r",
+              "    pm.expect(jsonData.username).to.eql(\"TestUser891\");\r",
+              "});\r",
+              "\r",
+              "// ==========================\r",
+              "// VALIDATE REAL PERSISTENCE\r",
+              "// ==========================\r",
+              "pm.test(\"FirstName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.firstName)\r",
+              "      .to.eql(requestBody.firstName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"LastName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.lastName)\r",
+              "      .to.eql(requestBody.lastName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Dependants persisted correctly\", function () {\r",
+              "    pm.expect(jsonData.dependants)\r",
+              "      .to.eql(requestBody.dependants);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 5️⃣ FINANCIAL VALIDATIONS (BY PAYCHECK)\r",
+              "// ========================================\r",
+              "\r",
+              "// Business constants\r",
+              "const paycheck = 2000;\r",
+              "const paychecksPerYear = 26;\r",
+              "const employeeBenefitYearly = 1000;\r",
+              "const dependentBenefitYearly = 500;\r",
+              "\r",
+              "let dependants = jsonData.dependants;\r",
+              "\r",
+              "// Expected calculation\r",
+              "let yearlyBenefits = employeeBenefitYearly + \r",
+              "    (dependants * dependentBenefitYearly);\r",
+              "\r",
+              "let expectedBenefitsPerPaycheck = yearlyBenefits / paychecksPerYear;\r",
+              "let expectedNetPerPaycheck = paycheck - expectedBenefitsPerPaycheck;\r",
+              "\r",
+              "// Validations\r",
+              "pm.test(\"Gross correct\", function () {\r",
+              "    pm.expect(jsonData.gross).to.eql(paycheck);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct benefits\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost)\r",
+              "      .to.be.closeTo(expectedBenefitsPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct net\", function () {\r",
+              "    pm.expect(jsonData.net)\r",
+              "      .to.be.closeTo(expectedNetPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 6️⃣ INTEGRITY VALIDATIONS\r",
+              "// ========================================\r",
+              "pm.test(\"Net is always less than Gross\", function () {\r",
+              "    pm.expect(jsonData.net).to.be.below(jsonData.gross);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Benefits are never negative.\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost).to.be.at.least(0);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"firstName\": \"No_Dependents\",\r\n  \"lastName\": \"API_Test\",\r\n  \"dependants\": 0\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CREATE EMPLOYEE 1 Dependent",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "// Get body sent\r",
+              "let requestBody = JSON.parse(pm.request.body.raw);\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"Status 200 o 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE ID AND SAVE IT\r",
+              "// ========================================\r",
+              "pm.test(\"Employee has valid ID\", function () {\r",
+              "    pm.expect(jsonData.id).to.exist;\r",
+              "    pm.expect(jsonData.id).to.be.a(\"string\");\r",
+              "    pm.expect(jsonData.id).to.match(\r",
+              "        /^[0-9a-fA-F-]{36}$/\r",
+              "    ); // Basic UUID validation\r",
+              "});\r",
+              "\r",
+              "// Save ID for future requests (GET, PUT, DELETE)\r",
+              "pm.collectionVariables.set(\"employeeId\", jsonData.id);\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE OWNERSHIP\r",
+              "// ========================================\r",
+              "// It must match the authenticated user\r",
+              "pm.test(\"Employee belongs to the authenticated user\", function () {\r",
+              "    pm.expect(jsonData.username).to.eql(\"TestUser891\");\r",
+              "});\r",
+              "\r",
+              "// ==========================\r",
+              "// VALIDATE REAL PERSISTENCE\r",
+              "// ==========================\r",
+              "pm.test(\"FirstName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.firstName)\r",
+              "      .to.eql(requestBody.firstName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"LastName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.lastName)\r",
+              "      .to.eql(requestBody.lastName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Dependants persisted correctly\", function () {\r",
+              "    pm.expect(jsonData.dependants)\r",
+              "      .to.eql(requestBody.dependants);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 5️⃣ FINANCIAL VALIDATIONS (BY PAYCHECK)\r",
+              "// ========================================\r",
+              "\r",
+              "// Business constants\r",
+              "const paycheck = 2000;\r",
+              "const paychecksPerYear = 26;\r",
+              "const employeeBenefitYearly = 1000;\r",
+              "const dependentBenefitYearly = 500;\r",
+              "\r",
+              "let dependants = jsonData.dependants;\r",
+              "\r",
+              "// Expected calculation\r",
+              "let yearlyBenefits = employeeBenefitYearly + \r",
+              "    (dependants * dependentBenefitYearly);\r",
+              "\r",
+              "let expectedBenefitsPerPaycheck = yearlyBenefits / paychecksPerYear;\r",
+              "let expectedNetPerPaycheck = paycheck - expectedBenefitsPerPaycheck;\r",
+              "\r",
+              "// Validations\r",
+              "pm.test(\"Gross correct\", function () {\r",
+              "    pm.expect(jsonData.gross).to.eql(paycheck);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct benefits\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost)\r",
+              "      .to.be.closeTo(expectedBenefitsPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct net\", function () {\r",
+              "    pm.expect(jsonData.net)\r",
+              "      .to.be.closeTo(expectedNetPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 6️⃣ INTEGRITY VALIDATIONS\r",
+              "// ========================================\r",
+              "pm.test(\"Net is always less than Gross\", function () {\r",
+              "    pm.expect(jsonData.net).to.be.below(jsonData.gross);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Benefits are never negative.\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost).to.be.at.least(0);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"firstName\": \"One_Dependent\",\r\n  \"lastName\": \"API_TestOne\",\r\n  \"dependants\": 1\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CREATE EMPLOYEE Maximun Dependents",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "// Get body sent\r",
+              "let requestBody = JSON.parse(pm.request.body.raw);\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"Status 200 o 201\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE ID AND SAVE IT\r",
+              "// ========================================\r",
+              "pm.test(\"Employee has valid ID\", function () {\r",
+              "    pm.expect(jsonData.id).to.exist;\r",
+              "    pm.expect(jsonData.id).to.be.a(\"string\");\r",
+              "    pm.expect(jsonData.id).to.match(\r",
+              "        /^[0-9a-fA-F-]{36}$/\r",
+              "    ); // Basic UUID validation\r",
+              "});\r",
+              "\r",
+              "// Save ID for future requests (GET, PUT, DELETE)\r",
+              "pm.collectionVariables.set(\"employeeId\", jsonData.id);\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE OWNERSHIP\r",
+              "// ========================================\r",
+              "// It must match the authenticated user\r",
+              "pm.test(\"Employee belongs to the authenticated user\", function () {\r",
+              "    pm.expect(jsonData.username).to.eql(\"TestUser891\");\r",
+              "});\r",
+              "\r",
+              "// ==========================\r",
+              "// VALIDATE REAL PERSISTENCE\r",
+              "// ==========================\r",
+              "pm.test(\"FirstName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.firstName)\r",
+              "      .to.eql(requestBody.firstName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"LastName successfully persisted\", function () {\r",
+              "    pm.expect(jsonData.lastName)\r",
+              "      .to.eql(requestBody.lastName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Dependants persisted correctly\", function () {\r",
+              "    pm.expect(jsonData.dependants)\r",
+              "      .to.eql(requestBody.dependants);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 5️⃣ FINANCIAL VALIDATIONS (BY PAYCHECK)\r",
+              "// ========================================\r",
+              "\r",
+              "// Business constants\r",
+              "const paycheck = 2000;\r",
+              "const paychecksPerYear = 26;\r",
+              "const employeeBenefitYearly = 1000;\r",
+              "const dependentBenefitYearly = 500;\r",
+              "\r",
+              "let dependants = jsonData.dependants;\r",
+              "\r",
+              "// Expected calculation\r",
+              "let yearlyBenefits = employeeBenefitYearly + \r",
+              "    (dependants * dependentBenefitYearly);\r",
+              "\r",
+              "let expectedBenefitsPerPaycheck = yearlyBenefits / paychecksPerYear;\r",
+              "let expectedNetPerPaycheck = paycheck - expectedBenefitsPerPaycheck;\r",
+              "\r",
+              "// Validations\r",
+              "pm.test(\"Gross correct\", function () {\r",
+              "    pm.expect(jsonData.gross).to.eql(paycheck);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct benefits\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost)\r",
+              "      .to.be.closeTo(expectedBenefitsPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Correct net\", function () {\r",
+              "    pm.expect(jsonData.net)\r",
+              "      .to.be.closeTo(expectedNetPerPaycheck, 0.01);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 6️⃣ INTEGRITY VALIDATIONS\r",
+              "// ========================================\r",
+              "pm.test(\"Net is always less than Gross\", function () {\r",
+              "    pm.expect(jsonData.net).to.be.below(jsonData.gross);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Benefits are never negative.\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost).to.be.at.least(0);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"firstName\": \"Max_Dependent\",\r\n  \"lastName\": \"API_TestTwo\",\r\n  \"dependants\": 32\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CREATE EMPLOYEE Overlimit Dependents",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE ERROR STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"Rejects more than 32 dependents\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"firstName\": \"OverLimit_Dependent\",\r\n  \"lastName\": \"API_TestO\",\r\n  \"dependants\": 33\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET all employees",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "let savedId = pm.collectionVariables.get(\"employeeId\");\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"GET All response 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VERIFY WHICH EMPLOYEE EXISTS IN THE LIST\r",
+              "// ========================================\r",
+              "let employee = jsonData.find(emp => emp.id === savedId);\r",
+              "\r",
+              "pm.test(\"Employee visible in the table\", function () {\r",
+              "    pm.expect(employee).to.not.be.undefined;\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET Employee By ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "// Obtener ID guardado\r",
+              "let savedId = pm.collectionVariables.get(\"employeeId\");\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"GET by ID response 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE ID\r",
+              "// ========================================\r",
+              "pm.test(\"The ID matches the saved\", function () {\r",
+              "    pm.expect(jsonData.id).to.eql(savedId);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE DYNAMIC OWNERSHIP\r",
+              "// ========================================\r",
+              "pm.test(\"Username is present\", function () {\r",
+              "    pm.expect(jsonData.username).to.be.a(\"string\");\r",
+              "    pm.expect(jsonData.username.length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 4️⃣ VALIDATE FINANCIAL INTEGRITY\r",
+              "// ========================================\r",
+              "pm.test(\"Net less than Gross\", function () {\r",
+              "    pm.expect(jsonData.net).to.be.below(jsonData.gross);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Non-negative benefits\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost).to.be.at.least(0);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees",
+            "{{employeeId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EDIT EMPLOYEE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "// PARSE RESPONSE\r",
+              "// ========================================\r",
+              "let jsonData = pm.response.json();\r",
+              "let requestBody = JSON.parse(pm.request.body.raw);\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"PUT response is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE ID DOES NOT CHANGE\r",
+              "// ========================================\r",
+              "pm.test(\"ID remains the same\", function () {\r",
+              "    pm.expect(jsonData.id)\r",
+              "      .to.eql(pm.collectionVariables.get(\"employeeId\"));\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE CHANGE\r",
+              "// ========================================\r",
+              "pm.test(\"FirstName updated\", function () {\r",
+              "    pm.expect(jsonData.firstName)\r",
+              "      .to.eql(requestBody.firstName);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Dependents updated\", function () {\r",
+              "    pm.expect(jsonData.dependants)\r",
+              "      .to.eql(requestBody.dependants);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 4️⃣ VALIDATE FINANCIAL RECALCULATION\r",
+              "// ========================================\r",
+              "const paycheck = 2000;\r",
+              "const yearlyBenefits =\r",
+              "    1000 + (requestBody.dependants * 500);\r",
+              "\r",
+              "const expectedBenefits = yearlyBenefits / 26;\r",
+              "const expectedNet = paycheck - expectedBenefits;\r",
+              "\r",
+              "pm.test(\"Benefits recalculated correctly\", function () {\r",
+              "    pm.expect(jsonData.benefitsCost)\r",
+              "      .to.be.closeTo(expectedBenefits, 0.01);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Net recalculated successfully\", function () {\r",
+              "    pm.expect(jsonData.net)\r",
+              "      .to.be.closeTo(expectedNet, 0.01);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"id\": \"{{employeeId}}\",\r\n  \"firstName\": \"QA_Updated\",\r\n  \"lastName\": \"API\",\r\n  \"dependants\": 5\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DELETE EMPLOYEE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ========================================\r",
+              "//   GET SAVED ID\r",
+              "// ========================================\r",
+              "let savedId = pm.collectionVariables.get(\"employeeId\");\r",
+              "\r",
+              "// ========================================\r",
+              "// 1️⃣ VALIDATE CORRECT URL\r",
+              "// ========================================\r",
+              "pm.test(\"The URL contains the correct employeeId\", function () {\r",
+              "    pm.expect(pm.request.url.toString())\r",
+              "      .to.include(savedId);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 2️⃣ VALIDATE STATUS\r",
+              "// ========================================\r",
+              "pm.test(\"DELETE response 200 or 204\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+              "});\r",
+              "\r",
+              "// ========================================\r",
+              "// 3️⃣ VALIDATE RESPONSE (IF IT RETURNS BODY)\r",
+              "// ========================================\r",
+              "if (pm.response.text()) {\r",
+              "    let jsonData = pm.response.json();\r",
+              "\r",
+              "    pm.test(\"Response contains valid confirmation\", function () {\r",
+              "        pm.expect(jsonData).to.be.an(\"object\");\r",
+              "    });\r",
+              "}\r",
+              "\r",
+              "// ========================================\r",
+              "// 4️⃣ CONTROLLED CLEANING (OPTIONAL)\r",
+              "// ========================================\r",
+              "// We only delete the variable if the delete operation was successful.\r",
+              "if (pm.response.code === 200 || pm.response.code === 204) {\r",
+              "    pm.collectionVariables.unset(\"employeeId\");\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic VGVzdFVzZXI4OTE6L0BqeE5db045Ll9r",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Employees",
+            "{{employeeId}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod"
+    },
+    {
+      "key": "username",
+      "value": ""
+    }
+  ]
+}
