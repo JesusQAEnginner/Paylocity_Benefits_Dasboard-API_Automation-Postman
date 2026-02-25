@@ -216,7 +216,9 @@ Reporting for technical and business stakeholders
 ## 👤 Author
 
 Jesus Ricardo Hernandez Campos
+
 QA Automation Engineer
+
 API Testing | Automation Strategy | CI/CD Awareness
 
 ## 🏆 Quality Engineering Philosophy
