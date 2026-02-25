@@ -161,6 +161,7 @@ npm install -g newman-reporter-htmlextra
 ## Run Test Collection
 
 newman run Benefits_Automation.postman_collection.json
+Or you can download the Postman collection and imported it to your Postman and Run it.
 
 ## Generate HTML Report
 
