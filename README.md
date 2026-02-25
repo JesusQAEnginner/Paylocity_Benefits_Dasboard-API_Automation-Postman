@@ -1,241 +1,229 @@
-🧪 Benefits API Automation Framework
-📌 Overview
 
-Automated API testing framework developed to validate the Employees & Benefits module, ensuring business rules, financial calculations, and CRUD operations behave correctly.
+# 🧪 Benefits API Automation Framework
 
-This project demonstrates professional-level API automation using:
+## 📌 Overview
 
-Postman
+Automated API testing framework developed to validate the Employees & Benefits module.
 
-Newman (CLI execution)
+The objective is to ensure business rules, financial calculations, and CRUD operations behave correctly under deterministic execution conditions.
 
-HTML reporting
+This project demonstrates professional API automation using:
 
-Deterministic test flow
+- Postman  
+- Newman CLI execution  
+- HTML reporting  
+- Business rule validation  
+- Boundary testing  
+- End-to-end CRUD workflow coverage  
 
-Business rule validation
+---
 
-Boundary testing
+## 🎯 Objective
 
-End-to-end CRUD coverage
+Validate employer ability to:
 
-🎯 Objective
+- Add employees  
+- Calculate benefit costs correctly  
+- Edit employee data  
+- Delete employees  
+- Maintain data consistency across requests  
 
-Validate that an employer can:
+All tests are designed to be reproducible via CLI execution.
 
-Add employees
+---
 
-Calculate benefit costs correctly
+## 🏗 Architecture & Test Design Principles
 
-Edit employee data
+The automation suite follows:
 
-Delete employees
+- Deterministic test execution  
+- Independent request validation  
+- No hardcoded identifiers  
+- CI/CD pipeline readiness  
+- Self-cleaning test behavior  
 
-See accurate results reflected in the system
+---
 
-All validations are automated and reproducible via CLI execution.
+## 🔁 Execution Flow
 
-🏗 Architecture & Test Design
+The Collection Runner / Newman execution sequence is:
 
-The suite is designed to be:
+1. POST – Create Employee  
+2. GET by ID – Validate persistence  
+3. GET All – Validate dashboard visibility  
+4. PUT – Update employee data  
+5. GET by ID – Validate updates  
+6. DELETE – Remove employee  
+7. GET by ID – Confirm deletion (negative test)  
+8. GET All – Validate record count integrity  
 
-Deterministic
+This ensures full CRUD lifecycle validation.
 
-Independent
+---
 
-Self-cleaning
+## 💰 Business Rules Assumptions
 
-Free of hardcoded values
+Financial model used during testing:
 
-Execution-ready for CI/CD
+- Employee Gross Pay = $2000 per paycheck  
+- 26 paychecks per year  
+- Annual Employee Benefit Cost = $1000  
+- Dependent Cost = $500 per dependent  
 
-🔁 Execution Flow (Collection Runner / Newman)
+### Calculation Model
 
-POST – Create Employee
+Yearly Benefits = 1000 + (Dependents × 500)
+Benefits per Paycheck = Yearly Benefits ÷ 26
+Net Paycheck = 2000 − Benefits per Paycheck
 
-GET by ID – Validate persistence
-
-GET All – Validate dashboard visibility
-
-PUT – Update employee
-
-GET by ID – Validate update persistence
-
-DELETE – Remove employee
-
-GET by ID (Negative) – Confirm deletion
-
-GET All – Validate record count decrement
-
-This ensures full CRUD coverage and data integrity validation.
-
-💰 Business Rules Validated
-Assumptions
-
-$2000 gross per paycheck
-
-26 paychecks per year
-
-$1000 annual benefit cost per employee
-
-$500 annual cost per dependent
-
-Financial Validation Logic
-Yearly Benefits = 1000 + (dependents * 500)
-Benefits per Paycheck = Yearly Benefits / 26
-Net = 2000 - Benefits per Paycheck
 
 Assertions validate:
 
-Gross is correct
+- Gross value correctness  
+- Benefit calculation accuracy  
+- Net < Gross condition  
+- Non-negative benefit values  
+- Decimal precision tolerance  
 
-Benefits are calculated correctly
+---
 
-Net < Gross
+## 🧪 Test Coverage Scenarios
 
-Benefits are never negative
+### ✅ Add Employee Validation
 
-Decimal precision tolerance handled
+- Data persistence verification  
+- UUID dynamic capture  
+- Ownership validation  
+- Financial calculation integrity  
+- Dashboard visibility confirmation  
 
-🧪 Scenarios Covered
-✅ Add Employee
+---
 
-Data persistence
+### ✅ Edit Employee Validation
 
-UUID validation
+- Field update correctness  
+- Payroll preview recalculation  
+- Persistence re-validation  
 
-Ownership validation
+---
 
-Financial calculation accuracy
+### ✅ Delete Employee Validation
 
-Dashboard visibility
+- Correct HTTP response codes  
+- Negative scenario verification  
+- Record count validation  
 
-✅ Edit Employee
+---
 
-Field update validation
+### ✅ Boundary Testing
 
-Recalculated financial values
+Dependent values tested:
 
-Persistence re-validation
+| Dependents | Expected Behavior |
+|---|---|
+| 0 | Valid |
+| 1 | Valid |
+| 32 | Maximum allowed |
+| >32 | Should be rejected |
 
-✅ Delete Employee
+---
 
-Correct status code
+## 🔍 Technical Validation Strategies
 
-Negative validation after deletion
+- Dynamic UUID handling  
+- Collection variable storage  
+- No hardcoded request identifiers  
+- Status code verification (200, 201, 404, etc.)  
+- Response schema integrity  
+- Ownership validation  
+- Error-safe JSON parsing  
 
-Record count validation
+---
 
-✅ Boundary Testing
+## 🛠 Technology Stack
 
-0 dependents
+- Postman  
+- Newman  
+- newman-reporter-htmlextra  
+- Node.js  
 
-1 dependent
+---
 
-Multiple dependents
+## ⚙️ Installation and Execution
 
-Maximum allowed dependents (32)
+### Install Dependencies
 
-🔍 Technical Validations
-
-Dynamic UUID capture
-
-Collection variable management
-
-No hardcoded IDs
-
-Status code validation (200, 201, 404, etc.)
-
-Response structure validation
-
-Ownership validation
-
-Negative scenario handling
-
-Error-resilient JSON parsing
-
-🛠 Tech Stack
-
-Postman
-
-Newman
-
-newman-reporter-htmlextra
-
-Node.js
-
-⚙️ Installation & Execution
-Install Dependencies
+```bash
 npm install -g newman
 npm install -g newman-reporter-htmlextra
-Run Tests
+```
+
+## Run Test Collection
+
 newman run Benefits_Automation.postman_collection.json
-Generate HTML Report
+
+## Generate HTML Report
+
 newman run Benefits_Automation.postman_collection.json \
 -r htmlextra \
 --reporter-htmlextra-export report.html
 
-Open report.html to view execution summary.
-URL for open the report.html on Browser:
-https://jesusqaenginner.github.io/Paylocity_Benefits_Dasboard-API_Automation-Postman/reports/report.html
+## 📊 Report Features
 
-📊 Sample Report Includes
+### Execution report includes:
 
 Total requests executed
 
-Pass/Fail breakdown
+Assertion pass/fail summary
 
-Detailed assertion logs
+Response metrics
 
-Response time metrics
+Request and response bodies
 
-Request/Response bodies
+Visual execution dashboard
 
-Visual execution summary
+## Report URL:
 
-🚀 CI/CD Ready
+https://jesusqaenginner.github.io/Paylocity_Benefits_Dasboard-API_Automation-Postman/reports/report.html
 
-The suite is prepared for:
+
+## 🚀 CI/CD Readiness
+
+The framework supports:
 
 GitHub Actions integration
 
-Pipeline execution
+Pipeline execution automation
 
-Automated report generation
+Version-controlled testing
 
-Version-controlled test execution
+Headless CLI execution
 
-📈 What This Project Demonstrates
+## 📈 Engineering Value Demonstrated
 
-Real-world API automation
+This project showcases:
 
-Business logic validation
+Production-grade API automation
 
-Clean variable management
+Business rule validation
 
 Robust test design
 
-CLI execution outside Postman UI
+CLI-based execution
 
-Reporting for stakeholders
+Reporting for technical and business stakeholders
 
-Automation discipline (no flaky tests)
+## 👤 Author
 
-👤 Author
+Jesus Ricardo Hernandez Campos
+QA Automation Engineer
+API Testing | Automation Strategy | CI/CD Awareness
 
-Jesus Ricardo Hernandez Campos |
-API Testing | Automation Strategy | CI/CD Ready Frameworks
+## 🏆 Quality Engineering Philosophy
 
-🏆 Why This Matters
+The primary objective is not only defect detection but risk mitigation, business logic validation, and reliability assurance.
 
-This project reflects production-level thinking:
 
-Validates not just endpoints, but business rules.
 
-Ensures financial correctness.
 
-Prevents false positives.
 
-Uses deterministic execution flow.
-
-Ready for enterprise pipelines.
